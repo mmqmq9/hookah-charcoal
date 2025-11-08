@@ -1,35 +1,371 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hookah Charcoal</title>
-    <!-- Adding performance optimizations -->
-    <script>
-        // Lazy loading images
-        document.addEventListener('DOMContentLoaded', function() {
-            const images = document.querySelectorAll('img[data-src]');
-            images.forEach((img) => {
-                img.src = img.getAttribute('data-src');
-            });
-        });
-    </script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>فحم يولد كيوب — تجربة 3D محسّنة</title>
+  <meta name="description" content="نسخة محسّنة من عرض مكعب الفحم ثلاثي الأبعاد — أداء محسن، تحميل كسول، بديل CSS للأجهزة الضعيفة." />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --orange:#ff5e00; --gold:#ffb74d; --dark:#0a0a0a; --glass: rgba(255,255,255,0.05);
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dark);color:#fff;overflow-x:hidden}
+    #three-container{position:fixed;inset:0;z-index:-1}
+    .ui{position:absolute;top:20px;right:20px;z-index:60;text-align:right;pointer-events:none}
+    .ui h1{font-size:20px;font-weight:900;background:linear-gradient(90deg,var(--orange),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .ui p{margin-top:6px;color:#ccc;font-size:13px}
+    .cta{position:fixed;left:20px;bottom:20px;z-index:70}
+    .cta a{display:inline-block;background:#25d366;color:#000;font-weight:800;padding:10px 16px;border-radius:40px;text-decoration:none;box-shadow:0 8px 24px rgba(0,0,0,0.4)}
+    .content{position:relative;z-index:10;min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:2rem;text-align:center}
+    .glass{background:var(--glass);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:1.6rem;margin:1.6rem auto;max-width:900px;width:90%}
+    header h1{font-size:2.6rem}
+    header p{color:#ddd;font-size:1.05rem}
+    .features{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-top:1rem}
+    .features div{padding:1rem;border-radius:10px;background:rgba(255,255,255,0.03)}
+    footer{padding:2rem;color:#aaa}
+    #loader{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:80;background:linear-gradient(180deg,rgba(0,0,0,0.55),transparent);transition:opacity .35s}
+    #loader.hidden{opacity:0;pointer-events:none;visibility:hidden}
+    .loader-inner{width:180px}
+    .bar{height:8px;background:rgba(255,255,255,0.06);border-radius:6px;overflow:hidden}
+    .bar > i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--orange),var(--gold));transition:width .25s}
+    /* fallback css cube (visible for non-WebGL) */
+    #fallback{display:none;position:fixed;inset:0;align-items:center;justify-content:center;background:#000;z-index:40}
+    .css-scene{width:280px;height:280px;perspective:900px}
+    .css-cube{width:100%;height:100%;position:relative;transform-style:preserve-3d;animation:spinFallback 12s linear infinite}
+    .css-face{position:absolute;width:280px;height:280px;background:#111;border-radius:6px;border:3px solid rgba(255,94,0,0.12);box-shadow:inset 0 0 24px rgba(0,0,0,0.9)}
+    .css-face.front{transform:translateZ(140px)}.css-face.back{transform:rotateY(180deg) translateZ(140px)}.css-face.right{transform:rotateY(90deg) translateZ(140px)}.css-face.left{transform:rotateY(-90deg) translateZ(140px)}.css-face.top{transform:rotateX(90deg) translateZ(140px)}.css-face.bottom{transform:rotateX(-90deg) translateZ(140px)}
+    @keyframes spinFallback{from{transform:rotateX(0) rotateY(0)}to{transform:rotateX(360deg) rotateY(360deg)}}
+    .scroll-animate{opacity:0;transform:translateY(40px);transition:all .8s ease}.scroll-animate.show{opacity:1;transform:translateY(0)}
+    @media (max-width:768px){header h1{font-size:2rem}.css-scene{width:200px;height:200px}.css-face{width:200px;height:200px}}
+  </style>
 </head>
 <body>
-    <h1>Welcome to Hookah Charcoal</h1>
-    <!-- Example of using WebGL with restricted pixel ratio -->
-    <canvas id="webgl-canvas" width="640" height="480"></canvas>
-    <script>
-        const canvas = document.getElementById('webgl-canvas');
-        const gl = canvas.getContext('webgl');
-        // Restrict pixel ratio for better performance
-        gl.viewport(0, 0, Math.floor(canvas.width / 2), Math.floor(canvas.height / 2));
-    </script>
-    <noscript>
-        <p>JavaScript is disabled in your browser. Please enable it for the website to function properly.</p>
-    </noscript>
-    <!-- Lazy loaded images example -->
-    <img data-src="image1.jpg" alt="Image 1" style="display:none;" />
-    <img data-src="image2.jpg" alt="Image 2" style="display:none;" />
+  <div id="three-container" aria-hidden="true"></div>
+
+  <div id="fallback" role="img" aria-label="مكعب فحم يولد كيوب - بديل">
+    <div class="css-scene">
+      <div class="css-cube" aria-hidden="true">
+        <div class="css-face front"></div>
+        <div class="css-face back"></div>
+        <div class="css-face right"></div>
+        <div class="css-face left"></div>
+        <div class="css-face top"></div>
+        <div class="css-face bottom"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ui">
+    <h1>فحم يولد كيوب</h1>
+    <p id="hint">اقترب بالماوس أو المس الشاشة لتشغيل الاشتعال</p>
+  </div>
+
+  <div id="loader" role="status" aria-live="polite">
+    <div class="loader-inner">
+      <div style="margin-bottom:10px;text-align:center;color:#ddd;font-size:14px">جاري التحميل — يرجى الانتظار</div>
+      <div class="bar" aria-hidden="true"><i id="loader-bar"></i></div>
+    </div>
+  </div>
+
+  <div class="cta">
+    <a id="wa" href="https://wa.me/966XXXXXXXXX" target="_blank" rel="noopener">💬 اطلب عبر واتساب</a>
+  </div>
+
+  <main class="content">
+    <header class="glass scroll-animate">
+      <h1>فحم يولد كيوب</h1>
+      <p>فحم طبيعي من قشور جوز الهند — يدوم حتى 90 دقيقة — عديم الرائحة.</p>
+    </header>
+
+    <section class="glass scroll-animate">
+      <h2>لماذا يولد كيوب؟</h2>
+      <div class="features">
+        <div>🕒 يدوم حتى 90 دقيقة</div>
+        <div>🌴 من قشور جوز الهند</div>
+        <div>💨 عديم الرائحة والدخان</div>
+        <div>🔲 مكعبات أنيقة وسهلة الاستخدام</div>
+      </div>
+    </section>
+
+    <section class="glass scroll-animate">
+      <h2>آراء العملاء</h2>
+      <p>❝ أفضل فحم جربته! لا يترك رائحة ويشتعل بثبات. ❞ – خالد</p>
+      <p>❝ أنصح فيه بقوة، مثالي للشيشة والجمرات الطويلة. ❞ – أبو عبدالله</p>
+    </section>
+
+    <footer class="scroll-animate">
+      <p>© 2025 فحم يولد كيوب. جميع الحقوق محفوظة.</p>
+    </footer>
+  </main>
+
+  <!-- تحميل Three.js بشكل كسول وتحسين التهيئة -->
+  <script>
+  (function(){
+    'use strict';
+
+    const loaderEl = document.getElementById('loader');
+    const loaderBar = document.getElementById('loader-bar');
+    const fallbackEl = document.getElementById('fallback');
+    const threeContainer = document.getElementById('three-container');
+    const hint = document.getElementById('hint');
+
+    // تقرير الأداء: اجعل الأجهزة المحمولة أو العرض الصغير تعتبر lowPower
+    const forcedLow = new URLSearchParams(location.search).get('low') === '1';
+    const lowPower = forcedLow || (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || window.innerWidth < 900);
+
+    // فحص دعم WebGL (آمن)
+    function webglAvailable(){
+      try{
+        const canvas = document.createElement('canvas');
+        return !!(window.WebGLRenderingContext && (canvas.getContext('webgl') || canvas.getContext('experimental-webgl')));
+      }catch(e){ return false; }
+    }
+
+    // تساعد على تحديث شريط التحميل
+    function setProgress(p){
+      loaderBar.style.width = Math.max(2, Math.min(100, Math.round(p*100))) + '%';
+    }
+
+    // إظهار البديل بسرعة بينما يتم تجهيز WebGL
+    fallbackEl.style.display = 'flex';
+
+    // إذا لم يكن WebGL متاحًا، نعرض البديل وننهي
+    if(!webglAvailable()){
+      loaderEl.classList.add('hidden');
+      hint.textContent = 'جهازك لا يدعم WebGL — عرض بديل قيد التشغيل';
+      return;
+    }
+
+    // تحميل السكربتات بشكل كسول (deferred) باستخدام requestIdleCallback إن تواجد
+    function loadScript(src, attrs = {}) {
+      return new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = src;
+        s.async = true;
+        Object.keys(attrs).forEach(k => s.setAttribute(k, attrs[k]));
+        s.onload = () => resolve();
+        s.onerror = () => reject(new Error('Failed to load ' + src));
+        document.head.appendChild(s);
+      });
+    }
+
+    // نسق التحسين: ضبط نسبة البيكسل - تقلل الضغط على GPU
+    function getPixelRatio(){
+      const dpr = window.devicePixelRatio || 1;
+      if(lowPower) return Math.min(1, dpr);
+      return Math.min(1.5, dpr);
+    }
+
+    // تحميل مكتبة Three.js ثم تهيئة المشهد. نستخدم requestIdleCallback إن توفر.
+    const threeCDN = 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js';
+    const extrasBase = 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/';
+
+    const scriptsToLoad = [
+      threeCDN,
+      extrasBase + 'postprocessing/EffectComposer.js',
+      extrasBase + 'postprocessing/RenderPass.js',
+      extrasBase + 'postprocessing/UnrealBloomPass.js',
+      extrasBase + 'controls/OrbitControls.js'
+    ];
+
+    // تحميل تدريجي وتحكم بالخطأ
+    (window.requestIdleCallback || function(fn){ return setTimeout(fn, 200); })(async () => {
+      try {
+        // Load scripts sequentially to avoid race conditions on older browsers
+        for(let i=0;i<scriptsToLoad.length;i++){
+          await loadScript(scriptsToLoad[i]);
+          setProgress((i+1) / scriptsToLoad.length * 0.7); // up to 70% for script loads
+        }
+        setProgress(0.75);
+
+        // إنشاء المشهد بأمان داخل idle callback
+        initThree();
+      } catch (err) {
+        console.error('Error loading 3D assets:', err);
+        hint.textContent = 'فشل تحميل الرسوم — عرض بديل قيد التشغيل';
+        loaderEl.classList.add('hidden');
+        fallbackEl.style.display = 'flex';
+      }
+    });
+
+    // الدالة الأساسية لتهيئة Three.js (مبسطة ومحوّلة للأداء)
+    function initThree(){
+      // إخفاء البديل بعد جاهزية WebGL
+      fallbackEl.style.display = 'none';
+
+      // تأخير عرض الدالة الثقيلة لبضع إطار لتسهيل تفاعل المستخدم
+      setTimeout(() => {
+        try{
+          const THREE = window.THREE;
+          const scene = new THREE.Scene();
+          scene.fog = new THREE.FogExp2(0x000000, 0.02);
+
+          const camera = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 0.1, 100);
+          camera.position.set(0, 1.6, 6);
+
+          const renderer = new THREE.WebGLRenderer({ alpha:true, antialias: !lowPower, powerPreference: lowPower ? 'low-power' : 'high-performance' });
+          renderer.setPixelRatio(getPixelRatio());
+          renderer.setSize(innerWidth, innerHeight);
+          renderer.outputEncoding = THREE.sRGBEncoding;
+          threeContainer.appendChild(renderer.domElement);
+
+          // أسرع إضافة أضاءة بسيطة
+          scene.add(new THREE.AmbientLight(0xffffff, 0.12));
+          const fireLight = new THREE.PointLight(0xff7a33, 1.0, 12, 2);
+          fireLight.position.set(0,1.2,1.5);
+          scene.add(fireLight);
+
+          // أرضية بسيطة
+          const plane = new THREE.Mesh(new THREE.PlaneGeometry(40,40), new THREE.MeshStandardMaterial({color:0x050505, roughness:1}));
+          plane.rotation.x = -Math.PI/2;
+          plane.position.y = -1.6;
+          scene.add(plane);
+
+          // مكعب الفحم — تقسيم أقل للأداء
+          const cubeGeom = new THREE.BoxGeometry(2.2,2.2,2.2, 8,8,8);
+          const txLoader = new THREE.TextureLoader();
+          // استخدام بيانات noise صغيرة مضمّنة
+          const noiseDataURL = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width=\"64\" height=\"64\"><filter id=\"n\"><feTurbulence baseFrequency=\"0.9\" numOctaves=\"1\" stitchTiles=\"stitch\"/></filter><rect width=\"100%\" height=\"100%\" filter=\"url(%23n)\"/></svg>';
+          const rough = txLoader.load(noiseDataURL);
+          rough.wrapS = rough.wrapT = THREE.RepeatWrapping;
+          rough.repeat.set(3,3);
+
+          const cubeMat = new THREE.MeshPhysicalMaterial({
+            color:0x0b0b0b, metalness:0.15, roughness:0.85, emissive:0x220000, emissiveIntensity:0.12, roughnessMap:rough
+          });
+          const cube = new THREE.Mesh(cubeGeom, cubeMat);
+          cube.position.y = 0.0;
+          scene.add(cube);
+
+          // inner ember (خفيف)
+          const innerGeom = new THREE.BoxGeometry(1.4,1.4,1.4);
+          const innerMat = new THREE.MeshBasicMaterial({color:0xff4500, transparent:true, opacity:0});
+          const inner = new THREE.Mesh(innerGeom, innerMat);
+          scene.add(inner);
+
+          // ذرات ember — استخدام عدد أقل للأداء
+          const emberCount = lowPower ? 60 : 120;
+          const emberGeo = new THREE.BufferGeometry();
+          const emberPos = new Float32Array(emberCount*3);
+          const emberCol = new Float32Array(emberCount*3);
+          for(let i=0;i<emberCount;i++){
+            emberPos[i*3+0] = (Math.random()-0.5)*1.1;
+            emberPos[i*3+1] = (Math.random()-0.5)*1.1;
+            emberPos[i*3+2] = (Math.random()-0.5)*1.1;
+            emberCol[i*3+0] = 1.0;
+            emberCol[i*3+1] = 0.4 + Math.random()*0.6;
+            emberCol[i*3+2] = 0.0;
+          }
+          emberGeo.setAttribute('position', new THREE.BufferAttribute(emberPos, 3));
+          emberGeo.setAttribute('color', new THREE.BufferAttribute(emberCol, 3));
+          const emberMat = new THREE.PointsMaterial({size: lowPower ? 0.04 : 0.06, vertexColors:true, transparent:true, opacity:0.9, blending:THREE.AdditiveBlending});
+          const embers = new THREE.Points(emberGeo, emberMat);
+          scene.add(embers);
+
+          // احفظ composer فقط إن الجهاز قوي بما يكفي
+          let composer = null, controls = null;
+          if(!lowPower && THREE.EffectComposer){
+            composer = new THREE.EffectComposer(renderer);
+            composer.addPass(new THREE.RenderPass(scene, camera));
+            const bloom = new THREE.UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.9, 0.6, 0.1);
+            bloom.threshold = 0.12; bloom.strength = 1.0; bloom.radius = 0.5;
+            composer.addPass(bloom);
+          }
+
+          // ضوابط خفيفة
+          controls = new THREE.OrbitControls(camera, renderer.domElement);
+          controls.enablePan = false; controls.enableZoom = false; controls.enableDamping = true; controls.dampingFactor = 0.06; controls.maxPolarAngle = Math.PI/2.2;
+
+          // تعامل التفاعل
+          let isHover = false;
+          let pointer = {nx:0, ny:0};
+
+          function onPointerMove(e){
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            pointer.nx = (clientX / innerWidth) * 2 - 1;
+            pointer.ny = (clientY / innerHeight) * 2 - 1;
+          }
+          window.addEventListener('pointermove', onPointerMove, {passive:true});
+          window.addEventListener('touchmove', onPointerMove, {passive:true});
+
+          renderer.domElement.addEventListener('pointerenter', () => { isHover=true; hint.textContent='الآن يشتعل — اسحب أو حرك الماوس'; }, {passive:true});
+          renderer.domElement.addEventListener('pointerleave', () => { isHover=false; hint.textContent='اقترب بالماوس أو المس الشاشة'; }, {passive:true});
+          renderer.domElement.addEventListener('touchstart', () => { isHover=true; }, {passive:true});
+          renderer.domElement.addEventListener('touchend', () => { isHover=false; }, {passive:true});
+
+          // حلقة الرسوم - مع قيود الأداء
+          const clock = new THREE.Clock();
+          function animate(){
+            const t = clock.getElapsedTime();
+
+            // تدوير خفيف متأثر بالمؤشر
+            const targetRX = (pointer.ny || 0) * 0.35;
+            const targetRY = (pointer.nx || 0) * 0.5;
+            cube.rotation.x += (targetRX - cube.rotation.x) * 0.06;
+            cube.rotation.y += (targetRY - cube.rotation.y) * 0.06;
+
+            // تأثير الاشتعال
+            const baseEm = 0.12;
+            const boost = isHover ? 0.9 : 0;
+            cube.material.emissiveIntensity = baseEm + boost * (0.5 + Math.abs(Math.sin(t*6))*0.6);
+            inner.material.opacity = Math.min(0.9, boost * (0.25 + Math.abs(Math.sin(t*8))*0.75));
+
+            // حركة بسيطة للجمرات
+            const pos = emberGeo.attributes.position;
+            for(let i=0;i<emberCount;i++){
+              const idx = i*3+1;
+              pos.array[idx] += 0.001 + (Math.sin(t*3 + i) * 0.0006);
+              if(pos.array[idx] > 1.2) pos.array[idx] = -0.6 + Math.random()*0.2;
+            }
+            pos.needsUpdate = true;
+
+            // تذبذب الضوء
+            fireLight.intensity = 0.8 + (isHover ? 1.4 : 0.35) * (0.6 + Math.abs(Math.sin(t*10))*0.8);
+            fireLight.color.setHSL(0.06, 1, Math.min(1, 0.45 + fireLight.intensity*0.12));
+
+            // render
+            if(composer){
+              composer.render();
+            } else {
+              renderer.render(scene, camera);
+            }
+            controls.update();
+            requestAnimationFrame(animate);
+          }
+
+          // إنهاء التحميل وإظهار الصفحة
+          setProgress(0.95);
+          setTimeout(()=>{ loaderEl.classList.add('hidden'); setProgress(1); }, 220);
+
+          // استماع لتغير الحجم
+          window.addEventListener('resize', ()=> {
+            camera.aspect = innerWidth/innerHeight; camera.updateProjectionMatrix();
+            renderer.setSize(innerWidth, innerHeight);
+            if(composer && composer.setSize) composer.setSize(innerWidth, innerHeight);
+          }, {passive:true});
+
+          // تفعيل التأثيرات على عناصر المحتوى
+          const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => { if(entry.isIntersecting) entry.target.classList.add('show'); });
+          }, {threshold:0.12});
+          document.querySelectorAll('.scroll-animate').forEach(el => observer.observe(el));
+
+          // بدء الحلقة
+          animate();
+
+        } catch(e){
+          console.error('Initialization error:', e);
+          loaderEl.classList.add('hidden');
+          fallbackEl.style.display = 'flex';
+          hint.textContent = 'حدث خطأ أثناء تهيئة المشهد — عرض بديل قيد التشغيل';
+        }
+      }, 60);
+    }
+
+  })();
+  </script>
 </body>
 </html>
