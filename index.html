@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>فحم يولد كيوب | 3D فاخر</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --orange: #ff5e00;
+      --gold: #ffb74d;
+      --dark: #0a0a0a;
+      --glass: rgba(255, 255, 255, 0.05);
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: var(--dark);
+      color: #fff;
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+    }
+    /* الخلفية 3D */
+    #bg-3d {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+    }
+    /* طبقات زجاجية */
+    .glass {
+      background: var(--glass);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+      padding: 2em;
+      margin: 2em auto;
+      max-width: 800px;
+    }
+    h1, h2 {
+      background: linear-gradient(90deg, var(--orange), var(--gold));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 700;
+    }
+    header {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+    header h1 {
+      font-size: 3.5em;
+      margin-bottom: 0.5em;
+    }
+    header p {
+      font-size: 1.3em;
+      color: #ddd;
+    }
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5em;
+      text-align: center;
+    }
+    .features div {
+      background: var(--glass);
+      padding: 1.5em;
+      border-radius: 15px;
+      transition: transform 0.3s ease;
+    }
+    .features div:hover {
+      transform: translateY(-10px);
+    }
+    footer {
+      text-align: center;
+      padding: 2em;
+      color: #aaa;
+    }
+    /* نموذج تواصل عائم */
+    #contact-3d {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      background: var(--glass);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      padding: 2em;
+      width: 90%;
+      max-width: 400px;
+      z-index: 1000;
+      transition: transform 0.4s ease;
+    }
+    #contact-3d.show {
+      transform: translate(-50%, -50%) scale(1);
+    }
+    #contact-3d input, #contact-3d textarea {
+      width: 100%;
+      padding: 1em;
+      margin-bottom: 1em;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+      color: #fff;
+      font-family: inherit;
+    }
+    #contact-3d button {
+      background: var(--orange);
+      color: #fff;
+      padding: 1em 2em;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+    #close-contact {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 1.5em;
+      cursor: pointer;
+    }
+    /* زر واتساب عائم 3D */
+    .whatsapp-3d {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: #25d366;
+      color: #fff;
+      padding: 15px 20px;
+      border-radius: 50px;
+      font-size: 1.1em;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+      transform: perspective(1000px) rotateX(10deg) rotateY(-10deg);
+      transition: transform 0.3s ease;
+      z-index: 999;
+    }
+    .whatsapp-3d:hover {
+      transform: perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1.1);
+    }
+    /* تأثيرات التمرير المحلية */
+    .scroll-animate {
+      opacity: 0;
+      transform: translateY(50px);
+      transition: all 0.8s ease;
+    }
+    .scroll-animate.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="bg-3d"></canvas>
+
+  <!-- الهيدر -->
+  <header>
+    <h1>فحم يولد كيوب</h1>
+    <p>فحم طبيعي من قشور جوز الهند، يدوم 90 دقيقة، عديم الرائحة، بتصميم 3D فاخر.</p>
+  </header>
+
+  <!-- المميزات -->
+  <section class="glass scroll-animate">
+    <h2>لماذا تختار يولد كيوب؟</h2>
+    <div class="features">
+      <div>🕒 يدوم حتى 90 دقيقة</div>
+      <div>🌴 من قشور جوز الهند</div>
+      <div>💨 عديم الرائحة والدخان</div>
+      <div>🔲 مكعبات أنيقة وسهلة الاستخدام</div>
+    </div>
+  </section>
+
+  <!-- الآراء -->
+  <section class="glass scroll-animate">
+    <h2>آراء العملاء</h2>
+    <p>❝ أفضل فحم جربته! لا يترك رائحة ويشتعل بثبات. ❞ – خالد</p>
+    <p>❝ أنصح فيه بقوة، مثالي للشيشة والجمرات الطويلة. ❞ – أبو عبدالله</p>
+  </section>
+
+  <!-- التواصل -->
+  <section class="glass scroll-animate">
+    <h2>تواصل معنا</h2>
+    <p>📞 جاهزون لاستقبال طلباتك على مدار الساعة.</p>
+    <button onclick="showContact()" style="background: var(--orange); color: #fff; padding: 1em 2em; border: none; border-radius: 10px; cursor: pointer; font-weight: 700;">افتح نموذج التواصل</button>
+  </section>
+
+  <!-- الفوتر -->
+  <footer class="scroll-animate">
+    <p>© 2025 فحم يولد كيوب. تصميم 3D فاخر.</p>
+  </footer>
+
+  <!-- نموذج التواصل العائم -->
+  <div id="contact-3d">
+    <button id="close-contact" onclick="hideContact()">×</button>
+    <h3>تواصل معنا</h3>
+    <form action="https://formspree.io/f/your-form-id" method="POST">
+      <input type="text" name="name" placeholder="الاسم" required>
+      <input type="tel" name="phone" placeholder="رقم الجوال" required>
+      <textarea name="message" placeholder="ما الذي ترغب بطلبه؟" required></textarea>
+      <button type="submit">إرسال</button>
+    </form>
+  </div>
+
+  <!-- زر واتساب عائم -->
+  <a href="https://wa.me/9665xxxxxxxxx" class="whatsapp-3d" target="_blank">💬 اطلب عبر واتساب</a>
+
+  <!-- Three.js -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+  <script>
+    // خلفية 3D
+    const canvas = document.getElementById('bg-3d');
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+
+    const ambient = new THREE.AmbientLight(0xffffff, 0.5);
+    scene.add(ambient);
+    const pointLight = new THREE.PointLight(0xff5e00, 1.5, 100);
+    pointLight.position.set(5, 5, 5);
+    scene.add(pointLight);
+
+    const geometry = new THREE.BoxGeometry(3, 3, 3);
+    const material = new THREE.MeshPhysicalMaterial({
+      color: 0xff5e00,
+      metalness: 0.6,
+      roughness: 0.3,
+      transmission: 0.9,
+      opacity: 0.3,
+      transparent: true,
+      emissive: 0x331100,
+      emissiveIntensity: 0.2
+    });
+    const cube = new THREE.Mesh(geometry, material);
+    scene.add(cube);
+
+    camera.position.z = 10;
+
+    function animate() {
+      requestAnimationFrame(animate);
+      cube.rotation.x += 0.002;
+      cube.rotation.y += 0.003;
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // وظائف نموذج التواصل
+    function showContact() {
+      document.getElementById('contact-3d').classList.add('show');
+    }
+    function hideContact() {
+      document.getElementById('contact-3d').classList.remove('show');
+    }
+
+    // تفعيل التأثيرات عند التمرير (بدون مكتبات)
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('show');
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.scroll-animate').forEach(el => {
+      observer.observe(el);
+    });
+  </script>
+</body>
+</html>
